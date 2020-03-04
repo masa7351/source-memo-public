@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // references: https://tech-blog.sgr-ksmt.org/2019/12/31/160623/
+
+    ////////////////////////////
+    // /users/{userID} 
+    ////////////////////////////
+    match /users/{userID} {
+      allow read: if isAuthenticated();
+      ////////////////////////////
+      // /users/{userID}  create
+      ////////////////////////////
+      allow create:
+        if isUserAuthenticated(userID)
+        && validateName()
+        && isRequestedTime(incomingData().createTime)
+        && isRequestedTime(incomingData().updateTime)
+      
+      ////////////////////////////
+      // /users/{userID}  update
+      ////////////////////////////
+      allow update:
+        if isUpdatingMyData()
+
+      function isUpdatingMyData() {
+        return isUserAuthenticated(userID)
+          && validateName()
+          && isRequestedTime(incomingData().updateTime)
+          && isNotChanged('createTime');
+      }
+
+      function validateName() {
+        return validateString(incomingData().name, 1, 16);
+      }
+
+      ////////////////////////////
+      // /users/{userID} delete
+      ////////////////////////////
+      allow delete:
+        if isUserAuthenticated(userID) 
+
+      ////////////////////////////
+      // /users/{userID}/tweets/{tweetID}
+      ////////////////////////////
+      match /tweets/{tweetID} {
+        allow read: if isAuthenticated();
+
+        ////////////////////////////
+        // /users/{userID}/tweets/{tweetID} create
+        ////////////////////////////
+        allow create:
+          if isUserAuthenticated(userID)
+          && incomingData().author == documentPath(['users', userID])
+          && validateText()
+          && isRequestedTime(incomingData().createTime)
+          && isRequestedTime(incomingData().updateTime);
+
+
+        ////////////////////////////
+        // /users/{userID}/tweets/{tweetID} update
+        ////////////////////////////
+        // point: update時は、createTimeを条件から外す
+        allow update:
+          if isNotChanged('author')
+          && isNotChanged('createTime')
+          && isRequestedTime(incomingData().updateTime);
+
+        function validateText() {
+          // https://firebase.google.com/docs/firestore/manage-data/data-types
+          // 最大 1,048,487 バイト ＆ UTF-8 3バイト計算
+          return validateString(incomingData().content, 10, 30000);
+        }
+
+        ////////////////////////////
+        // /users/{userID}/tweets/{tweetID} delete
+        ////////////////////////////
+        allow delete:
+          if isUserAuthenticated(userID)
+
+      }
+
+    }
+
+    match /{path=**}/tweets/{tweetID} {
+      // reference: https://firebase.google.com/docs/firestore/security/rules-query?hl=ja
+      // read ルールを get ルールと list ルールに分割しています。
+      // get ルールでは、単一のドキュメントの取得を、公開ドキュメントか、そのユーザー自身が作成したドキュメントに制限しています。
+      // list ルールでは、クエリ以外については get ルールと同じ制限が適用されます。また、このルールではクエリの制限がチェックされ、
+      // 無制限のクエリまたは制限が 10 を超えるクエリは拒否されます。
+      allow list
+    }
+
+    // Utilities
+
+    // stringの配列からドキュメントのpathを作る
+    function documentPath(paths) {
+      return path([
+        ['databases', database, 'documents'].join('/'),
+        paths.join('/')
+      ].join('/'));
+    }
+
+    // ユーザーが認証済みかどうか
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 認証済みユーザのuidとuserIDが一致するかどうか
+    function isUserAuthenticated(userID) {
+      return request.auth.uid == userID;
+    }
+
+    // request.resource.dataを返す
+    function incomingData() {
+      return request.resource.data;
+    }
+
+    // resource.dataを返す
+    function existingData() {
+      return resource.data;
+    }
+
+    // get関数で得られた結果のうち、dataのみを返す
+    function getData(path) {
+      return get(path).data;
+    }
+
+    // getAfterで得られた結果のうち、dataのみを返す
+    function getAfterData(path) {
+      return getAfter(path).data;
+    }
+
+    // timestamp型の変数の値が、オペレーション実行時の時刻と一致するかどうか
+    // (FieldValue.serverTimestamp()を使うことで一致する)
+    function isRequestedTime(time) {
+      return time == request.time;
+    }
+
+    // 文字列のバリデーション。型チェックと文字数チェックを行う
+    function validateString(text, min, max) {
+      return text is string
+        && min <= text.size()
+        && text.size() <= max;
+    }
+
+    // updateのルール内で、変更前後で値が変わらないかどうか
+    function isNotChanged(key) {
+      return incomingData()[key] == existingData()[key];
+    }
+
+    // updateのルール内で、変更前後で指定したdataのフィールドの値がいくつ増えたかをチェックする
+    function isIncremented(after, before, key, number) {
+      return after[key] == before[key] + number;
+    }
+
+    function isIncrementedField(key, number) {
+      return isIncremented(incomingData(), existingData(), key, number);
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "staging": "source-memo-dev",
+    "production": "source-memo"
+  }
+}

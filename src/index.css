@@ -1,0 +1,140 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f4f4f4;
+}
+
+:root {
+  --primary-color: #93cb52;
+  --link-hover-color: #7ab436;
+  --border-color: #444;
+  --input-border-color: #aaa;
+  --overlay-color: rgba(0, 0, 0, 0.7);
+  --background-color: #f3f3f3;
+  --radius: 5px;
+  --text-color: #222;
+}
+
+/* Utilities */
+.primaryText {
+  color: var(--primary-color);
+}
+
+.container h1,
+.container h2,
+.container h3 {
+  padding-bottom: 3rem;
+}
+
+.btn:hover {
+  background: var(--link-hover-color);
+}
+
+.container {
+  margin: auto;
+  max-width: 1100px;
+}
+
+.py-top-1 {
+  padding-top: 1rem;
+}
+
+.py-top-2 {
+  padding-top: 2rem;
+}
+
+.py-1 {
+  padding: 1rem 0;
+}
+
+.py-2 {
+  padding: 2rem 0;
+}
+
+.m-top-1 {
+  margin-top: 1rem;
+}
+
+.m-top-2 {
+  margin-top: 2rem;
+}
+
+.opacity50 {
+  opacity: 0.5;
+}
+
+/* Markdown */
+
+.markdown h1 {
+  font-size: 1.6rem;
+}
+
+.markdown h2 {
+  font-size: 1.4rem;
+}
+
+.markdown h3 {
+  font-size: 1.2rem;
+}
+
+.markdown pre {
+  border: 1px solid #ccc;
+  margin: 1rem 0;
+}
+
+.markdown blockquote {
+  color: #666;
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 0.5rem #eee solid;
+}
+
+.markdown table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.markdown table tr {
+  border-top: 1px solid #c6cbd1;
+  background: #fff;
+}
+
+.markdown th,
+.markdown td {
+  padding: 6px 13px;
+  border: 1px solid #dfe2e5;
+}
+
+.markdown tr:nth-child(2n) {
+  background: #f6f8fa;
+}
+
+.markdown ul {
+  display: block;
+  list-style-type: disc;
+  margin-block-start: 1rem;
+  margin-block-end: 1rem;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  padding-inline-start: 40px;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  margin: 0;
+  padding: 1rem 0;
+  font-weight: bold;
+}
+
+.markdown p {
+  margin: 0.5rem 0;
+}
+
+.markdown hr {
+  color: var(--border-color);
+}
